@@ -3,9 +3,8 @@ package com.example.myapplication.assignment.domain
 import com.example.myapplication.assignment.data.ItemEntity
 
 interface TodoRepository {
-    suspend fun saveUser(user: TodoItem)
-    suspend fun getLastInsertedItem(): TodoItem
-    suspend fun getAllUsers(): List<TodoItem>
+    suspend fun saveItem(user: TodoItem)
+    suspend fun getAllItems(): List<TodoItem>
 }
 
 fun ItemEntity.toDomain(): TodoItem {

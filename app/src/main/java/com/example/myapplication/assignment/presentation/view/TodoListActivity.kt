@@ -1,6 +1,5 @@
 package com.example.myapplication.assignment.presentation.view
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.IconButton
 import androidx.compose.material.TopAppBar
@@ -29,13 +30,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.example.myapplication.assignment.domain.TodoItem
@@ -43,41 +43,34 @@ import com.example.myapplication.assignment.presentation.viewmodel.TodoViewModel
 import com.example.myapplication.assignment.utils.ObserverLifeCycleEvents
 
 @Composable
-fun TodoListActivity(navController: NavHostController, viewmodel: TodoViewModel) {
-    val todoUiState = viewmodel.state.collectAsState()
+fun TodoListActivity(navController: NavHostController, viewmodel: TodoViewModel, message: String) {
 
-    viewmodel.ObserverLifeCycleEvents(LocalLifecycleOwner.current.lifecycle)
+    /*val result =
+        navController.previousBackStackEntry?.savedStateHandle?.get<String>("result")
+    if (result != null) {
+        CreatePopup(result)
+    }*/
 
-    when (val state = todoUiState.value) {
-        is TodoViewModel.UiState.Loading -> {
-            CircularProgressIndicator()
-        }
-
-        is TodoViewModel.UiState.Success -> {
-
-            AddScreen(
-                state.data,
-                viewmodel,
-                navController
-            )
-        }
-    }
-
+    CreateScreen(viewmodel, navController, message)
 
 }
 
 @Composable
-fun AddScreen(
-    todoUiState: List<TodoItem>,
+fun CreateScreen(
     viewmodel: TodoViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    message: String
+
 ) {
 
     var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("Initial Text"))
     }
 
+    viewmodel.ObserverLifeCycleEvents(LocalLifecycleOwner.current.lifecycle)
+
     var isSearchBarVisible by rememberSaveable { mutableStateOf(false) }
+    val uiState = viewmodel.state.collectAsState()
 
     MaterialTheme {
         Scaffold(
@@ -128,18 +121,77 @@ fun AddScreen(
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
+                        when (val state = uiState.value) {
+                            is TodoViewModel.UiState.Loading -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
 
-                        LazyColumn(Modifier.fillMaxWidth()) {
-                            items(todoUiState) { item ->
-                                TodoListItem(todoItem = item)
+                            is TodoViewModel.UiState.Success -> {
+                                if (state.data.isEmpty()) {
+                                    CreateTextViewToAddItem(navController)
+                                } else {
+                                    LazyColumn(Modifier.fillMaxWidth()) {
+                                        items(state.data) { item ->
+                                            TodoListItem(todoItem = item)
+                                        }
+                                    }
+                                }
                             }
                         }
+
+                        if (message.isNotBlank()) {
+                            CreatePopup(message)
+                        }
+
 
                     }
                 }
             }
         )
+    }
 
+}
+
+@Composable
+fun CreatePopup(result: String) {
+    var showDialog by remember { mutableStateOf(true) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { true },
+            title = { Text(text = "Popup Title") },
+            text = { Text(result) },
+            confirmButton = {
+                Button(
+                    onClick = { showDialog = false }
+                ) {
+                    Text("OK")
+                }
+            },
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+
+@Composable
+fun CreateTextViewToAddItem(navController: NavHostController) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Button(
+            onClick = { navController.navigate("add_screen") },
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Text(
+                text = "Press the + button to add a TODO item.",
+                color = Color.White
+            )
+        }
 
     }
 }

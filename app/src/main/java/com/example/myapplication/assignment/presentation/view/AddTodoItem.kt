@@ -1,11 +1,14 @@
 package com.example.myapplication.assignment.presentation.view
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
@@ -18,43 +21,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.assignment.presentation.viewmodel.TodoViewModel
 
 @Composable
-fun AddTodoItem(navController: NavHostController, viewmodel: TodoViewModel) {
+fun AddTodoItem(
+    viewmodel: TodoViewModel = viewModel(),
+    navigateToListScreen: (String) -> Unit
+) {
     var todoItem by remember { mutableStateOf(TextFieldValue()) }
     val todoUiState = viewmodel.addState.collectAsState()
-    when (val state = todoUiState.value) {
-        is TodoViewModel.AddUiState.Loading -> {
-            CircularProgressIndicator()
-        }
-
-        is TodoViewModel.AddUiState.Error -> {
-
-
-        }
-
-        is TodoViewModel.AddUiState.NavigateToListScreen -> {
-            if (navController.previousBackStackEntry != null) {
-                navController.popBackStack()
-                viewmodel.resetStateVakue()
-            }
-            /*navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<String?>("newItem", null)?.collectAsState(null)?.value?.let { newItem ->
-                if (newItem != null) {
-                   // toDoItems = toDoItems + newItem
-                    navController.currentBackStackEntry?.savedStateHandle?.remove<String>("newItem")
-                }
-            }
-*/
-        }
-
-    }
 
     Scaffold(
         topBar = {
@@ -78,6 +61,29 @@ fun AddTodoItem(navController: NavHostController, viewmodel: TodoViewModel) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    when (val state = todoUiState.value) {
+                        is TodoViewModel.AddUiState.Loading -> {
+                            ShowProgress(true)
+                        }
+
+                        is TodoViewModel.AddUiState.Error -> {
+                            CreatePopupScreen(state.message)
+                        }
+
+                        is TodoViewModel.AddUiState.Exception -> {
+                            navigateToListScreen(state.message)
+                            viewmodel.resetStateValue()
+
+                        }
+
+                        is TodoViewModel.AddUiState.NavigateToListScreen -> {
+                            navigateToListScreen("")
+                            viewmodel.resetStateValue()
+                        }
+
+                        TodoViewModel.AddUiState.Nothing -> {}
+                    }
+
                     TextField(
                         value = todoItem,
                         onValueChange = { todoItem = it },
@@ -104,9 +110,26 @@ fun AddTodoItem(navController: NavHostController, viewmodel: TodoViewModel) {
     )
 }
 
+@Composable
+fun ShowProgress(showProgress: Boolean) {
+    if (showProgress) {
+        Box(
+            modifier = Modifier.wrapContentSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+}
+
+@Composable
+fun CreatePopupScreen(result: String) {
+    Toast.makeText(LocalContext.current, result, Toast.LENGTH_SHORT).show()
+}
+
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-
+    ShowProgress(true)
 }

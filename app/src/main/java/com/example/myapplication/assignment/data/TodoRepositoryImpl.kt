@@ -10,16 +10,12 @@ import javax.inject.Inject
 class TodoRepositoryImpl @Inject constructor(
     private val userDao: ItemDao
 ) : TodoRepository {
-    override suspend fun saveUser(item: TodoItem) {
+    override suspend fun saveItem(item: TodoItem) {
         userDao.insertUser(item.toEntity())
     }
 
-    override suspend fun getLastInsertedItem(): TodoItem {
-        return userDao.getLastInsertedRecord().toDomain()
-    }
-
-    override suspend fun getAllUsers(): List<TodoItem> {
-        return userDao.getAllUsers().map { userEntities ->
+    override suspend fun getAllItems(): List<TodoItem> {
+        return userDao.getAllItems().map { userEntities ->
             userEntities.toDomain()
         }
     }

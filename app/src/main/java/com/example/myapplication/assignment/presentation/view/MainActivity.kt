@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,8 +29,31 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val viewmodel: TodoViewModel = hiltViewModel()
     val navController = rememberNavController()
+
     NavHost(navController = navController, startDestination = "list_screen") {
-        composable("list_screen") { TodoListActivity(navController, viewmodel) }
-        composable("add_screen") { AddTodoItem(navController, viewmodel) }
+        composable("list_screen") {
+            // get the Error message from the Add screen to display in the list screen
+            val message = it.savedStateHandle.get<String>("result") ?: ""
+            // Setting the value as null
+            navController.previousBackStackEntry?.savedStateHandle?.set("result", null)
+            // Navigating to list screen
+            TodoListActivity(navController, viewmodel, message)
+        }
+
+        // navigating to details screen
+        composable("add_screen") {
+            AddTodoItem(
+                navigateToListScreen = navController::navigateToListScreen,
+                viewmodel = viewmodel
+            )
+        }
     }
+}
+
+fun NavController.navigateToListScreen(message: String) {
+    if (message.isNotEmpty()) {
+        val previousBackStackEntry = this.previousBackStackEntry
+        previousBackStackEntry?.savedStateHandle?.set("result", message)
+    }
+    this.popBackStack()
 }

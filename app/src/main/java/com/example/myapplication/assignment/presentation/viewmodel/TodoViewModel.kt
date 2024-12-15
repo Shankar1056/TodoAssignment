@@ -24,27 +24,32 @@ class TodoViewModel @Inject constructor(
     private val _filteredState = MutableStateFlow<List<TodoItem>>(listOf(TodoItem()))
     val filteredState = _filteredState.asStateFlow()
 
-    private val _addstate = MutableStateFlow<AddUiState>(AddUiState.Loading)
+    private val _addstate = MutableStateFlow<AddUiState>(AddUiState.Nothing)
     val addState = _addstate.asStateFlow()
 
-    fun resetStateVakue() {
-        _addstate.value = AddUiState.Loading
+    fun resetStateValue() {
+        _addstate.value = AddUiState.Nothing
     }
 
     fun saveTodoItem(item: String) {
-        val todoItem = TodoItem(item)
-        viewModelScope.launch {
-            _addstate.value = AddUiState.Loading
-
-            repository.saveUser(todoItem)
-            delay(3000)
-            _addstate.value = AddUiState.NavigateToListScreen
+        if (item.isEmpty()) {
+            _addstate.value = AddUiState.Error("There is nothing to add")
+        } else if (item == "Error") {
+            _addstate.value = AddUiState.Exception("Failed to add TODO")
+        } else {
+            val todoItem = TodoItem(item)
+            viewModelScope.launch {
+                _addstate.value = AddUiState.Loading
+                delay(3000)
+                repository.saveItem(todoItem)
+                _addstate.value = AddUiState.NavigateToListScreen
+            }
         }
     }
 
     fun getUserDetails() {
         viewModelScope.launch {
-            val result = repository.getAllUsers()
+            val result = repository.getAllItems()
             _state.value = UiState.Success(result)
             _filteredState.value = result
 
@@ -54,6 +59,7 @@ class TodoViewModel @Inject constructor(
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
         getUserDetails()
+
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -66,14 +72,18 @@ class TodoViewModel @Inject constructor(
         _state.value = UiState.Success(data.filter { it.item.contains(query, ignoreCase = true) })
     }
 
+    // this UiState created for List Screen
     sealed class UiState {
         object Loading : UiState()
         data class Success(val data: List<TodoItem>) : UiState()
     }
 
+    // this AddUiState created for Add Screen
     sealed class AddUiState {
+        object Nothing : AddUiState()
         object Loading : AddUiState()
         data class Error(val message: String) : AddUiState()
+        data class Exception(val message: String) : AddUiState()
         object NavigateToListScreen : AddUiState()
     }
 

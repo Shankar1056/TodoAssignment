@@ -9,11 +9,9 @@ import com.example.myapplication.assignment.data.ItemEntity
 @Dao
 interface ItemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user: ItemEntity)
+    suspend fun insertUser(item: ItemEntity)
 
     @Query("SELECT * FROM items")
-    suspend fun getAllUsers(): List<ItemEntity>
+    suspend fun getAllItems(): List<ItemEntity>
 
-    @Query("SELECT * FROM items ORDER BY id DESC LIMIT 1")
-    suspend fun getLastInsertedRecord(): ItemEntity
 }
