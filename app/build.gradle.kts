@@ -108,4 +108,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version") // For Java
     kapt("androidx.room:room-compiler:$room_version")
+
+    implementation("io.mockk:mockk:1.13.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.0")
 }

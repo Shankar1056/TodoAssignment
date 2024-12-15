@@ -34,6 +34,36 @@ class TodoViewModelTest {
     }
 
     @Test
+    fun `Given item is given Error, When saveTodoItem called, Then verify the state`() = runTest {
+        // Given
+        val output = "Failed to add TODO"
+
+        // When
+        viewModel.saveTodoItem("Error")
+
+        // Then
+        TestCase.assertEquals(
+            viewModel.addState.value,
+            TodoViewModel.AddUiState.Exception(output)
+        )
+    }
+
+    @Test
+    fun `Given item is not present, When saveTodoItem called, Then verify the state`() = runTest {
+        // Given
+        val output = "There is nothing to add"
+
+        // When
+        viewModel.saveTodoItem("")
+
+        // Then
+        TestCase.assertEquals(
+            viewModel.addState.value,
+            TodoViewModel.AddUiState.Error(output)
+        )
+    }
+
+    @Test
     fun `Given item is present, When saveTodoItem called, Then verify the state`() = runTest {
         // Given
         val todoItem = "Dummy Test"
