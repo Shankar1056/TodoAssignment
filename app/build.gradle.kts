@@ -44,6 +44,13 @@ android {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
+    packaging {
+        resources {
+            resources.excludes.add("META-INF/*")
+        }
+    }
+
+
 }
 
 kapt {
