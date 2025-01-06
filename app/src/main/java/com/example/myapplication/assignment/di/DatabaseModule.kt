@@ -6,6 +6,7 @@ import com.example.myapplication.assignment.data.TodoRepositoryImpl
 import com.example.myapplication.assignment.data.db.AppDatabase
 import com.example.myapplication.assignment.data.db.ItemDao
 import com.example.myapplication.assignment.domain.TodoRepository
+import com.example.myapplication.assignment.utils.UtilCons
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,7 +24,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "item_database"
+            UtilCons.DATABASE_NAME
         ).build()
     }
 

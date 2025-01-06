@@ -34,37 +34,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavHostController
+import com.example.myapplication.R
 import com.example.myapplication.assignment.domain.TodoItem
 import com.example.myapplication.assignment.presentation.viewmodel.TodoViewModel
 import com.example.myapplication.assignment.utils.ObserverLifeCycleEvents
+import com.example.myapplication.assignment.utils.UtilCons
 
 @Composable
-fun TodoListActivity(navController: NavHostController, viewmodel: TodoViewModel, message: String) {
-
-    /*val result =
-        navController.previousBackStackEntry?.savedStateHandle?.get<String>("result")
-    if (result != null) {
-        CreatePopup(result)
-    }*/
-
-    CreateScreen(viewmodel, navController, message)
-
+fun TodoListActivity(
+    navigateToAddScreen: () -> Unit,
+    viewmodel: TodoViewModel,
+    message: String
+) {
+    CreateScreen(viewmodel, navigateToAddScreen, message)
 }
 
 @Composable
 fun CreateScreen(
     viewmodel: TodoViewModel,
-    navController: NavHostController,
+    navigateToAddScreen: () -> Unit,
     message: String
 
 ) {
-
+    val context = LocalContext.current
     var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("Initial Text"))
+        mutableStateOf(TextFieldValue(context.getString(R.string.initial_text)))
     }
 
     viewmodel.ObserverLifeCycleEvents(LocalLifecycleOwner.current.lifecycle)
@@ -86,17 +85,17 @@ fun CreateScreen(
                                 },
                             )
                         } else {
-                            Text(text = "Search List")
+                            Text(text = stringResource(R.string.search_list))
                         }
                     },
                     actions = {
                         IconButton(onClick = {
                             isSearchBarVisible = !isSearchBarVisible
-                            searchQuery = searchQuery.copy("")
+                            searchQuery = searchQuery.copy(context.getString(R.string.empty_string))
                         }) {
                             androidx.compose.material.Icon(
                                 imageVector = if (isSearchBarVisible) Icons.Filled.Close else Icons.Filled.Search,
-                                contentDescription = if (isSearchBarVisible) "Close Search" else "Open Search"
+                                contentDescription = if (isSearchBarVisible) stringResource(R.string.close_search) else stringResource(R.string.open_search)
                             )
                         }
                     },
@@ -105,16 +104,16 @@ fun CreateScreen(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { navController.navigate("add_screen") }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
+                FloatingActionButton(onClick = { navigateToAddScreen.invoke() }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add))
                 }
             },
             content = { paddingValues ->
                 Box(
                     modifier = Modifier
-                        .fillMaxSize() // Ensures it takes up the entire screen
+                        .fillMaxSize()
                         .padding(paddingValues)
-                        .background(Color.White) // Set the background color to blue
+                        .background(Color.White)
                 ) {
                     Column(
                         Modifier
@@ -133,7 +132,7 @@ fun CreateScreen(
 
                             is TodoViewModel.UiState.Success -> {
                                 if (state.data.isEmpty()) {
-                                    CreateTextViewToAddItem(navController)
+                                    CreateTextViewToAddItem(navigateToAddScreen)
                                 } else {
                                     LazyColumn(Modifier.fillMaxWidth()) {
                                         items(state.data) { item ->
@@ -163,13 +162,13 @@ fun CreatePopup(result: String) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { true },
-            title = { Text(text = "Popup Title") },
+            title = { Text(text = stringResource(R.string.dialog_title)) },
             text = { Text(result) },
             confirmButton = {
                 Button(
                     onClick = { showDialog = false }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             modifier = Modifier.padding(16.dp)
@@ -179,16 +178,16 @@ fun CreatePopup(result: String) {
 
 
 @Composable
-fun CreateTextViewToAddItem(navController: NavHostController) {
+fun CreateTextViewToAddItem(navController: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Button(
-            onClick = { navController.navigate("add_screen") },
+            onClick = { navController.invoke() },
             modifier = Modifier.align(Alignment.Center)
         ) {
             Text(
-                text = "Press the + button to add a TODO item.",
+                text = stringResource(R.string.add_item_text),
                 color = Color.White
             )
         }

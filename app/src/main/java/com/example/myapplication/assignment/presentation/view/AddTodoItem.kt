@@ -11,9 +11,14 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,16 +30,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.myapplication.R
 import com.example.myapplication.assignment.presentation.viewmodel.TodoViewModel
 
 @Composable
 fun AddTodoItem(
     viewmodel: TodoViewModel = viewModel(),
-    navigateToListScreen: (String) -> Unit
+    navigateToListScreen: (String) -> Unit,
+    navigateToBack: () -> Unit
 ) {
     var todoItem by remember { mutableStateOf(TextFieldValue()) }
     val todoUiState = viewmodel.addState.collectAsState()
@@ -43,10 +53,18 @@ fun AddTodoItem(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "My App")
+                    Text(text = stringResource(R.string.app_name))
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navigateToBack.invoke() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                elevation = 4.dp
+                elevation = dimensionResource(R.dimen.top_bar_elevation)
             )
         },
         content = { paddingValues ->
@@ -59,7 +77,7 @@ fun AddTodoItem(
                 Column(
                     Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(dimensionResource(R.dimen.fab_margin))
                 ) {
                     when (val state = todoUiState.value) {
                         is TodoViewModel.AddUiState.Loading -> {
@@ -77,7 +95,7 @@ fun AddTodoItem(
                         }
 
                         is TodoViewModel.AddUiState.NavigateToListScreen -> {
-                            navigateToListScreen("")
+                            navigateToListScreen(stringResource(R.string.empty_string))
                             viewmodel.resetStateValue()
                         }
 
@@ -87,7 +105,7 @@ fun AddTodoItem(
                     TextField(
                         value = todoItem,
                         onValueChange = { todoItem = it },
-                        label = { Text("Add TODO") },
+                        label = { Text(stringResource(R.string.add_todo)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(paddingValues)
@@ -99,9 +117,9 @@ fun AddTodoItem(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(30.dp)
+                            .padding(dimensionResource(R.dimen.dimen_30))
                     ) {
-                        Text("Add TODO")
+                        Text(stringResource(R.string.add_todo))
                     }
                 }
             }

@@ -1,12 +1,16 @@
 package com.example.myapplication.assignment.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.R
 import com.example.myapplication.assignment.domain.TodoItem
 import com.example.myapplication.assignment.domain.TodoRepository
+import com.example.myapplication.assignment.utils.UtilCons
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,34 +19,36 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TodoViewModel @Inject constructor(
-    private val repository: TodoRepository
+    private val repository: TodoRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel(), DefaultLifecycleObserver {
 
     private val _state = MutableStateFlow<UiState>(UiState.Loading)
     val state = _state.asStateFlow()
 
-    private val _filteredState = MutableStateFlow<List<TodoItem>>(listOf(TodoItem()))
+    private val _filteredState = MutableStateFlow(listOf(TodoItem()))
     val filteredState = _filteredState.asStateFlow()
 
-    private val _addstate = MutableStateFlow<AddUiState>(AddUiState.Nothing)
-    val addState = _addstate.asStateFlow()
+    private val _addState = MutableStateFlow<AddUiState>(AddUiState.Nothing)
+    val addState = _addState.asStateFlow()
+
 
     fun resetStateValue() {
-        _addstate.value = AddUiState.Nothing
+        _addState.value = AddUiState.Nothing
     }
 
     fun saveTodoItem(item: String) {
         if (item.isEmpty()) {
-            _addstate.value = AddUiState.Error("There is nothing to add")
-        } else if (item == "Error") {
-            _addstate.value = AddUiState.Exception("Failed to add TODO")
+            _addState.value = AddUiState.Error(context.getString(R.string.empty_text_add))
+        } else if (item == UtilCons.ERROR) {
+            _addState.value = AddUiState.Exception(context.getString(R.string.fail_add_message))
         } else {
             val todoItem = TodoItem(item)
             viewModelScope.launch {
-                _addstate.value = AddUiState.Loading
+                _addState.value = AddUiState.Loading
                 delay(3000)
                 repository.saveItem(todoItem)
-                _addstate.value = AddUiState.NavigateToListScreen
+                _addState.value = AddUiState.NavigateToListScreen
             }
         }
     }
